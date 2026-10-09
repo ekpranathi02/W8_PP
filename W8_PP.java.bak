@@ -1,86 +1,83 @@
 
 import java.util.Scanner;
-import java.time.LocalDate;
 
-abstract class LibraryItem {
-    String title;
+abstract class Delivery {
+    double weight, distance;
 
-    LibraryItem(String title) {
-        this.title = title;
+    Delivery(double weight, double distance) {
+        this.weight = weight;
+        this.distance = distance;
     }
 
-    abstract int getDays();
+    abstract double calculateFee();
+}
 
-    LocalDate getDueDate() {
-        return LocalDate.of(2023, 10, 26)
-                        .plusDays(getDays());
+class Standard extends Delivery {
+    Standard(double w, double d) {
+        super(w, d);
+    }
+
+    double calculateFee() {
+        return 5 + 0.50 * weight + 0.10 * distance;
     }
 }
 
-class Book extends LibraryItem {
-    Book(String title) {
-        super(title);
+class Express extends Delivery {
+    Express(double w, double d) {
+        super(w, d);
     }
 
-    int getDays() {
-        return 14;
-    }
-}
-
-class DVD extends LibraryItem {
-    DVD(String title) {
-        super(title);
-    }
-
-    int getDays() {
-        return 7;
+    double calculateFee() {
+        return 15 + weight + 0.20 * distance;
     }
 }
 
-class Magazine extends LibraryItem {
-    Magazine(String title) {
-        super(title);
+class International extends Delivery {
+    double customsFee;
+
+    International(double w, double d, double c) {
+        super(w, d);
+        customsFee = c;
     }
 
-    int getDays() {
-        return 3;
+    double calculateFee() {
+        return 25 + 2 * weight + 0.50 * distance + customsFee;
     }
 }
 
 public class W8_PP {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        int n = Integer.parseInt(sc.nextLine());
-        
+        int n = sc.nextInt();
+        double total = 0;
+
         for (int i = 0; i < n; i++) {
-            String line = sc.nextLine().trim();
-            int space = line.indexOf(' ');
-            String type = line.substring(0, space);
-            String title = line.substring(space + 1).trim();
+            String type = sc.next().toUpperCase();
+            double weight = sc.nextDouble();
+            double distance = sc.nextDouble();
+            Delivery d;
 
-            if (title.startsWith("\"") && title.endsWith("\"")) {
-                title = title.substring(1, title.length() - 1);
-            }
-
-            LibraryItem item;
-
-            switch (type.toUpperCase()) {
-                case "BOOK":
-                    item = new Book(title);
+            switch (type) {
+                case "STANDARD":
+                    d = new Standard(weight, distance);
                     break;
-                case "DVD":
-                    item = new DVD(title);
+                case "EXPRESS":
+                    d = new Express(weight, distance);
                     break;
-                case "MAGAZINE":
-                    item = new Magazine(title);
+                case "INTERNATIONAL":
+                    d = new International(weight, distance,
+                                          sc.nextDouble());
                     break;
                 default:
                     continue;
             }
 
-            System.out.println(item.title + ": " + item.getDueDate());
+            double fee = d.calculateFee();
+            System.out.printf("%s: %.2f%n", type, fee);
+            total += fee;
         }
 
+        System.out.printf("Total: %.2f%n", total);
         sc.close();
     }
 }

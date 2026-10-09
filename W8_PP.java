@@ -1,83 +1,98 @@
 
 import java.util.Scanner;
 
-abstract class Delivery {
-    double weight, distance;
+abstract class Question {
+    String correct, answer;
+    double points;
 
-    Delivery(double weight, double distance) {
-        this.weight = weight;
-        this.distance = distance;
+    Question(String correct, String answer, double points) {
+        this.correct = correct;
+        this.answer = answer;
+        this.points = points;
     }
 
-    abstract double calculateFee();
+    abstract double grade();
 }
 
-class Standard extends Delivery {
-    Standard(double w, double d) {
-        super(w, d);
+class MCQ extends Question {
+    MCQ(String c, String a, double p) {
+        super(c, a, p);
     }
 
-    double calculateFee() {
-        return 5 + 0.50 * weight + 0.10 * distance;
-    }
-}
-
-class Express extends Delivery {
-    Express(double w, double d) {
-        super(w, d);
-    }
-
-    double calculateFee() {
-        return 15 + weight + 0.20 * distance;
+    double grade() {
+        return answer.equals(correct) ? points : 0;
     }
 }
 
-class International extends Delivery {
-    double customsFee;
-
-    International(double w, double d, double c) {
-        super(w, d);
-        customsFee = c;
+class TF extends Question {
+    TF(String c, String a, double p) {
+        super(c, a, p);
     }
 
-    double calculateFee() {
-        return 25 + 2 * weight + 0.50 * distance + customsFee;
+    double grade() {
+        return answer.equals(correct) ? points : 0;
+    }
+}
+
+class Essay extends Question {
+    Essay(String c, String a, double p) {
+        super(c, a, p);
+    }
+
+    double grade() {
+        String[] keywords = correct.split(",");
+        int matched = 0;
+
+        for (String word : keywords) {
+            if (answer.toLowerCase().contains(word.trim().toLowerCase())) {
+                matched++;
+            }
+        }
+
+        if (matched >= 2) return points * 0.75;
+        if (matched == 1) return points * 0.50;
+        return 0;
     }
 }
 
 public class W8_PP {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        int n = sc.nextInt();
+        int n = Integer.parseInt(sc.nextLine());
         double total = 0;
 
         for (int i = 0; i < n; i++) {
-            String type = sc.next().toUpperCase();
-            double weight = sc.nextDouble();
-            double distance = sc.nextDouble();
-            Delivery d;
+            String line = sc.nextLine();
+            String[] parts = line.split("\"");
+            String type = parts[0].trim().split("\\s+")[0];
+            String questionText = parts[1];
+            String correct = parts[3];
+            String answer = parts[5];
+            String remaining = parts[6].trim();
+            double points = Double.parseDouble(remaining);
 
-            switch (type) {
-                case "STANDARD":
-                    d = new Standard(weight, distance);
+            Question q;
+
+            switch (type.toUpperCase()) {
+                case "MCQ":
+                    q = new MCQ(correct, answer, points);
                     break;
-                case "EXPRESS":
-                    d = new Express(weight, distance);
+                case "TF":
+                    q = new TF(correct, answer, points);
                     break;
-                case "INTERNATIONAL":
-                    d = new International(weight, distance,
-                                          sc.nextDouble());
+                case "ESSAY":
+                    q = new Essay(correct, answer, points);
                     break;
                 default:
                     continue;
             }
 
-            double fee = d.calculateFee();
-            System.out.printf("%s: %.2f%n", type, fee);
-            total += fee;
+            double score = q.grade();
+            System.out.printf("%s: %.2f%n", type, score);
+            total += score;
         }
 
-        System.out.printf("Total: %.2f%n", total);
+        System.out.printf("Total Score: %.2f%n", total);
         sc.close();
     }
 }
